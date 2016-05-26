@@ -1,5 +1,6 @@
 let BarChart = require('./BarChart');
 let Waveform = require('./Waveform');
+let HorizontalBarChart = require('./HorizontalBarChart');
 let PieChart = require('./PieChart');
 let ScatterPlot = require('./ScatterPlot');
 let LineChart = require('./LineChart');
@@ -9,6 +10,7 @@ let d3 = require('d3');
 
 module.exports = {
     BarChart: BarChart,
+    HorizontalBarChart: HorizontalBarChart,
     PieChart: PieChart,
     ScatterPlot: ScatterPlot,
     LineChart: LineChart,
