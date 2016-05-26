@@ -11,7 +11,7 @@ let HeightWidthMixin = require('./HeightWidthMixin');
 let ArrayifyMixin = require('./ArrayifyMixin');
 let StackAccessorMixin = require('./StackAccessorMixin');
 let StackDataMixin = require('./StackDataMixin');
-let DefaultScalesMixin = require('./DefaultScalesMixin');
+let HorizontalScalesMixin = require('./HorizontalScalesMixin');
 let TooltipMixin = require('./TooltipMixin');
 
 let DataSet = React.createClass({
@@ -44,15 +44,15 @@ let DataSet = React.createClass({
 			return values(stack).map((e, index) => {
 				return (
 						<Bar
-					key={`${label(stack)}.${index}`}
-					width={yScale(yScale.domain()[0]) - yScale(y(e))}
-					height={xScale.rangeBand()}
-					x={yScale.domain()[0]}
-					y={xScale(x(e))}
-					fill={colorScale(label(stack))}
-					data={e}
-					onMouseEnter={onMouseEnter}
-					onMouseLeave={onMouseLeave}
+                            key={`${label(stack)}.${index}`}
+                            width={yScale(y(e))}
+                            height={xScale.rangeBand()}
+                            x={yScale.domain()[0]}
+                            y={xScale(x(e))}
+                            fill={colorScale(label(stack))}
+                            data={e}
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave}
 						/>
 				);
 			});
@@ -70,7 +70,7 @@ let HorizontalBarChart = React.createClass({
 			 ArrayifyMixin,
 			 StackAccessorMixin,
 			 StackDataMixin,
-			 DefaultScalesMixin,
+             HorizontalScalesMixin,
 			 TooltipMixin],
 
 	getDefaultProps() {
@@ -102,58 +102,49 @@ let HorizontalBarChart = React.createClass({
 						this._innerWidth,
 						this._innerHeight,
 						this._xScale,
-						this._yScale];	
-
-		// Oddly the ticks seem to be reversed, as a temporary workaround just flip
-		// them to show up correctly.
-		let yAxisTicks = yScale
-			.ticks()
-			.reverse();
-
-		let formatter = tick => {
-			return yAxisTicks[tick];
-		};
+						this._yScale];
 
 		return (
 				<div>
 				<Chart height={height} width={width} margin={margin}>
-				<DataSet
-			data={data}
-			xScale={xScale}
-			yScale={yScale}
-			colorScale={colorScale}
-			values={values}
-			label={label}
-			y={y}
-			y0={y0}
-			x={x}
-			onMouseEnter={this.onMouseEnter}
-			onMouseLeave={this.onMouseLeave}
-				/>
+                    <DataSet
+                        data={data}
+                        xScale={xScale}
+                        yScale={yScale}
+                        colorScale={colorScale}
+                        values={values}
+                        label={label}
+                        y={y}
+                        y0={y0}
+                        x={x}
+                        onMouseEnter={this.onMouseEnter}
+                        onMouseLeave={this.onMouseLeave}
+                    />
+
+                    <Axis
+                        className={"y axis"}
+                        orientation={this.props.yAxis && this.props.yAxis.orientation ? this.props.yAxis.orientation : "top"}
+                        scale={yScale}
+                        height={innerHeight}
+                        width={innerWidth}
+                        {...yAxis}
+                    />
 					<Axis
-				className={"y axis"}
-				orientation={"top"}
-				scale={yScale}
-				tickFormat={formatter}
-				height={innerHeight}
-				width={innerWidth}
-				
+                        className={"x axis"}
+                        orientation={this.props.xAxis && this.props.xAxis.orientation ? this.props.xAxis.orientation : "left"}
+                        scale={xScale}
+                        height={innerHeight}
+                        width={innerWidth}
+                        {...xAxis}
 					/>
-					<Axis
-				className={"x axis"}
-				orientation={"left"}
-				scale={xScale}
-				height={innerHeight}
-				width={innerWidth}
-				{...xAxis}
-					/>
+
 				</Chart>
 
 				<Tooltip
-			hidden={this.state.tooltip.hidden}
-			top={this.state.tooltip.top}
-			left={this.state.tooltip.left}
-			html={this.state.tooltip.html}/>
+                    hidden={this.state.tooltip.hidden}
+                    top={this.state.tooltip.top}
+                    left={this.state.tooltip.left}
+                    html={this.state.tooltip.html}/>
 				</div>
 		);
 	}

@@ -20,10 +20,10 @@ let Wedge = React.createClass({
 
 		return (
 				<path
-			fill={fill}
-			d={d}
-			onMouseMove={ evt => { onMouseEnter(evt, data); } }
-			onMouseLeave={  evt => { onMouseLeave(evt); } }
+                    fill={fill}
+                    d={d}
+                    onMouseMove={ evt => { onMouseEnter(evt, data); } }
+                    onMouseLeave={  evt => { onMouseLeave(evt); } }
 				/>
 		);
 	}
@@ -54,18 +54,16 @@ let DataSet = React.createClass({
 
 	render() {
 		let {pie,
-			 arc,
-			 outerArc,
-			 colorScale,
-			 radius,
-			 strokeWidth,
-			 stroke,
-			 fill,
-			 opacity,
-			 x,
-			 y,
-			 onMouseEnter,
-			 onMouseLeave} = this.props;
+            arc,
+            outerArc,
+            colorScale,
+            radius,
+            total,
+            x,
+            y,
+            onMouseEnter,
+            onMouseLeave
+        } = this.props;
 
 		let wedges = pie.map((e, index) => {
 			function midAngle(d){
@@ -74,38 +72,31 @@ let DataSet = React.createClass({
 
 			let d = arc(e);
 
-			let labelPos = outerArc.centroid(e);
-			labelPos[0] = radius * (midAngle(e) < Math.PI ? 1 : -1);
-
-            let textAnchor = midAngle(e) < Math.PI ? 'start' : 'end';
-
 			let linePos = outerArc.centroid(e);
 			linePos[0] = radius * 0.95 * (midAngle(e) < Math.PI ? 1 : -1);
 
+            let labelPos = arc.centroid(e)
+
+            // Massive hack to hide values which will not fit in the wedge.
+            // @todo: Replace with bounding box + collision logic
+            let theValue = y(e.data);
+            let theText = ("" + theValue).length > theValue/total*100 ? '' : theValue;
+
 			return (
-					<g key={`${x(e.data)}.${y(e.data)}.${index}`} className="arc">
+                <g key={`${x(e.data)}.${y(e.data)}.${index}`} className="arc">
 					<Wedge
-				data={e.data}
-				fill={colorScale(x(e.data))}
-				d={d}
-				onMouseEnter={onMouseEnter}
-				onMouseLeave={onMouseLeave}
+                        data={e.data}
+                        fill={colorScale(x(e.data))}
+                        d={d}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
 					/>
-
-					<polyline
-				opacity={opacity}
-				strokeWidth={strokeWidth}
-				stroke={stroke}
-				fill={fill}
-				points={[arc.centroid(e), outerArc.centroid(e), linePos]}
-					/>
-
 					<text
-				dy=".35em"
-				x={labelPos[0]}
-				y={labelPos[1]}
-				textAnchor={textAnchor}>{x(e.data)}</text>
-					</g>
+                        dy=".35em"
+                        x={labelPos[0]}
+                        y={labelPos[1]}
+                        textAnchor="middle">{theText}</text>
+                </g>
 			);
 		});
 
@@ -116,7 +107,67 @@ let DataSet = React.createClass({
 		);
 	}
 });
+let Legend = React.createClass({
+    mixins: [DefaultPropsMixin,
+        HeightWidthMixin,
+        AccessorMixin,
+        TooltipMixin
+    ],
+    propTypes: {
+        innerRadius: React.PropTypes.number,
+        outerRadius: React.PropTypes.number,
+        labelRadius: React.PropTypes.number,
+        padRadius: React.PropTypes.string,
+        cornerRadius: React.PropTypes.number,
+        sort: React.PropTypes.any
+    },
+    getDefaultProps() {
+        return {
+            innerRadius: null,
+            outerRadius: null,
+            labelRadius: null,
+            padRadius: 'auto',
+            totalScale: 3.5,
+            cornerRadius: 0,
+            sort: undefined
+        };
+    },
+    render() {
 
+        const data = this.props.data;
+
+
+        // @todo: make this configurable
+        let offsetY = 20;
+        const theSize = 12;
+        const margin = 3;
+
+        // center legend vertically
+        let legendHeight = data.values.length * offsetY + margin;
+        const startX = 10;
+        let startY = (this.props.height / 2) - (legendHeight / 2);
+
+        return (
+            <g transform={`translate(${startX}, ${startY})`}>
+                {data.values.map((item, index) => {
+                    return <g key={`legend:${item.x}`} >
+                            <rect x={margin}  y={(offsetY * index) + margin} width={theSize + margin}
+                                height={theSize + margin}
+                                fill={this.props.colorScale(item.x)} />
+                            <text x={margin} y={(offsetY * (index)) + theSize + margin} dx="1.5em"
+                                textAnchor="start"
+                                style={{
+                                    fontFamily: "Roboto",
+                                    fontSize: theSize,
+                                    stroke: "#000",
+                                    fill: "#000"
+                                }}>{item.x}</text>
+                        </g>
+                })}
+            </g>
+        );
+    }
+});
 let PieChart = React.createClass({
 	mixins: [DefaultPropsMixin,
 			 HeightWidthMixin,
@@ -138,6 +189,7 @@ let PieChart = React.createClass({
 			outerRadius: null,
 			labelRadius: null,
             padRadius: 'auto',
+            totalScale: 3.5,
 			cornerRadius: 0,
 			sort: undefined
 		};
@@ -151,26 +203,33 @@ let PieChart = React.createClass({
 
 	render() {
 		let {data,
-			 width,
-			 height,
-			 margin,
-			 colorScale,
-			 innerRadius,
-			 outerRadius,
-			 labelRadius,
-			 padRadius,
-			 cornerRadius,
-			 sort,
-			 x,
-			 y,
-			 values} = this.props;
+            width,
+            height,
+            margin,
+            totalScale,
+            colorScale,
+            innerRadius,
+            outerRadius,
+            labelRadius,
+            padRadius,
+            cornerRadius,
+            showTotal,
+            sort,
+            x,
+            y,
+            values} = this.props;
 
-		let [innerWidth,
-			 innerHeight] = [this._innerWidth,
-							 this._innerHeight];
+		let [innerWidth, innerHeight] = [
+            this._innerWidth,
+            this._innerHeight];
+
+        // TOTAL IN THE CENTER
+        const centerX = 0;
+        const centerY = 0;
+        let total = 0;
 
 		let pie = d3.layout.pie()
-				.value(e => { return y(e); });
+            .value(e => { total+=y(e); return y(e); });
 
 		if (typeof sort !== 'undefined') {
 			pie = pie.sort(sort);
@@ -190,37 +249,56 @@ let PieChart = React.createClass({
 		}
 
 		let arc = d3.svg.arc()
-				.innerRadius(innerRadius)
-				.outerRadius(outerRadius)
-				.padRadius(padRadius)
-				.cornerRadius(cornerRadius);
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius)
+            .padRadius(padRadius)
+            .cornerRadius(cornerRadius);
 
 		let outerArc = d3.svg.arc()
-				.innerRadius(labelRadius)
-				.outerRadius(labelRadius);
+            .innerRadius(labelRadius)
+            .outerRadius(labelRadius);
 
 		let pieData = pie(values(data));
 
 		let translation = `translate(${innerWidth/2}, ${innerHeight/2})`;
+
 		return (
 			<div>
 				<Chart height={height} width={width} margin={margin}>
-				<g transform={translation}>
-				<DataSet
-			width={innerWidth}
-			height={innerHeight}
-			colorScale={colorScale}
-			pie={pieData}
-			arc={arc}
-			outerArc={outerArc}
-			radius={radius}
-			x={x}
-			y={y}
-			onMouseEnter={this.onMouseEnter}
-			onMouseLeave={this.onMouseLeave}
-				/>
-				</g>
-				{ this.props.children }
+                    <g transform={translation}>
+                        <DataSet
+                            width={innerWidth}
+                            height={innerHeight}
+                            colorScale={colorScale}
+                            total={total}
+                            pie={pieData}
+                            arc={arc}
+                            outerArc={outerArc}
+                            radius={radius}
+                            x={x}
+                            y={y}
+                            onMouseEnter={this.onMouseEnter}
+                            onMouseLeave={this.onMouseLeave}
+                        />
+                        {showTotal ?
+                            <text
+                                dy=".35em"
+                                style={{
+                                    fontFamily: "Roboto",
+                                    fontSize: radius/totalScale,
+                                    stroke: "#000",
+                                    fill: "#000"
+                                }}
+                                x={centerX}
+                                y={centerY}
+                                textAnchor="middle">{total}</text>: ''
+                        }
+                    </g>
+                    { this.props.children }
+
+                    {this.props.legend ?
+                        <Legend width={width} height={height} colorScale={colorScale} data={data} />: ''
+                    }
 				</Chart>
 
                 <Tooltip {...this.state.tooltip}/>

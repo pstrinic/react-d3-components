@@ -27,16 +27,19 @@ let Bar = React.createClass({
              onMouseLeave} = this.props;
 
         return (
-                <rect
-            className="bar"
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            fill={fill}
-            onMouseMove={ e => { onMouseEnter(e, data); } }
-            onMouseLeave={ e => { onMouseLeave(e); } }
-                />
+                <g>
+                    <rect
+                        className="bar"
+                        x={x}
+                        y={y}
+                        width={width}
+                        height={height}
+                        fill={fill}
+                        onMouseMove={ e => { onMouseEnter(e, data); } }
+                        onMouseLeave={ e => { onMouseLeave(e); } }
+                    />
+                    <text textAnchor="start" dx=".3em" dy=".3em" x={x + width} y={y + (height/2)}>{data.y}</text>
+                </g>
         );
     }
 });
