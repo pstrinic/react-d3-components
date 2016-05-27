@@ -127,6 +127,7 @@ let HorizontalBarChart = React.createClass({
                         scale={yScale}
                         height={innerHeight}
                         width={innerWidth}
+                        tickValues={yAxis.tickValues ? yAxis.tickValues : (this._ticks ? this._ticks : '')}
                         {...yAxis}
                     />
 					<Axis

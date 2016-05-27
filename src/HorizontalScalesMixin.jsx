@@ -109,14 +109,21 @@ let DefaultScalesMixin = {
     },
 
     __findLastStop(max, extendToSteps) {
-        let step = max / extendToSteps;
-        let log = Math.floor(Math.log10(max));
-        var t = Math.pow(10, log);
+        const step = max / extendToSteps;
+        const log = Math.floor(Math.log10(max));
+        let t = Math.pow(10, log);
         while(t < step) {
             t *= 2;
         }
 
-        return t * extendToSteps
+        let ticks = [0];
+        let tick = 1;
+        while(ticks.length <= extendToSteps) {
+            ticks.push(t * tick++);
+        }
+
+        this._ticks = ticks;
+        return t * extendToSteps;
     },
 
     _makeLinearYScale(props) {
