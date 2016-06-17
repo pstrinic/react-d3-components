@@ -136,7 +136,6 @@ let Legend = React.createClass({
 
         const data = this.props.data;
 
-
         // @todo: make this configurable
         let offsetY = 20;
         const theSize = 12;
@@ -144,7 +143,7 @@ let Legend = React.createClass({
 
         // center legend vertically
         let legendHeight = data.values.length * offsetY + margin;
-        const startX = 10;
+        const startX = this.props.innerWidth + 10;
         let startY = (this.props.height / 2) - (legendHeight / 2);
 
         return (
@@ -297,7 +296,7 @@ let PieChart = React.createClass({
                     { this.props.children }
 
                     {this.props.legend ?
-                        <Legend width={width} height={height} colorScale={colorScale} data={data} />: ''
+                        <Legend width={width} height={height} colorScale={colorScale} data={data} innerWidth={innerWidth} />: ''
                     }
 				</Chart>
 

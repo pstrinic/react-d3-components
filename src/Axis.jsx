@@ -62,7 +62,7 @@ let Axis = React.createClass({
              label} = this.props;
 
         let ticks = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues;
-
+ 
         if (!tickFormat)
         {
             if (scale.tickFormat) {
@@ -112,6 +112,7 @@ let Axis = React.createClass({
 
         let tickElements = ticks.map((tick, index) => {
             let position = activeScale(tick);
+
             let translate = transform.replace("{}", position);
             return (
                     <g key={`${tick}.${index}`} className="tick" transform={translate}>
@@ -125,7 +126,6 @@ let Axis = React.createClass({
         let pathElement = <path className="domain" d={d} fill="none" stroke="#aaa"/>;
 
         let axisBackground = <rect className="axis-background" fill="none"/>;
-
         return (
             <g ref="axis" className={className} transform={this._getTranslateString()} style={{shapeRendering: 'crispEdges'}}>
                 {axisBackground}

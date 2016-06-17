@@ -38,7 +38,9 @@ let Bar = React.createClass({
                         onMouseMove={ e => { onMouseEnter(e, data); } }
                         onMouseLeave={ e => { onMouseLeave(e); } }
                     />
+                    {/*
                     <text textAnchor="start" dx=".3em" dy=".3em" x={x + width} y={y + (height/2)}>{data.y}</text>
+                    */}
                 </g>
         );
     }

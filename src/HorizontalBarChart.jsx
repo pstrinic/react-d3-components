@@ -34,6 +34,7 @@ let DataSet = React.createClass({
 			 colorScale,
 			 values,
 			 label,
+             showY,
 			 x,
 			 y,
 			 y0,
@@ -53,6 +54,7 @@ let DataSet = React.createClass({
                             data={e}
                             onMouseEnter={onMouseEnter}
                             onMouseLeave={onMouseLeave}
+                            showY
 						/>
 				);
 			});

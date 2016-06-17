@@ -12,6 +12,7 @@ let ArrayifyMixin = require('./ArrayifyMixin');
 let StackAccessorMixin = require('./StackAccessorMixin');
 let StackDataMixin = require('./StackDataMixin');
 let DefaultScalesMixin = require('./DefaultScalesMixin');
+let AccessorMixin = require('./AccessorMixin');
 let TooltipMixin = require('./TooltipMixin');
 
 let DataSet = React.createClass({
@@ -57,7 +58,7 @@ let DataSet = React.createClass({
 							data={e}
 							onMouseEnter={onMouseEnter}
 							onMouseLeave={onMouseLeave}
-							/>
+                        />
 					);
 				});
 			});
@@ -76,7 +77,7 @@ let DataSet = React.createClass({
 							data={e}
 							onMouseEnter={onMouseEnter}
 							onMouseLeave={onMouseLeave}
-							/>
+                        />
 					);
 				});
 			});
@@ -87,7 +88,66 @@ let DataSet = React.createClass({
 		);
 	}
 });
+let Legend = React.createClass({
+    mixins: [DefaultPropsMixin,
+        HeightWidthMixin,
+        AccessorMixin,
+        TooltipMixin
+    ],
+    propTypes: {
+        innerRadius: React.PropTypes.number,
+        outerRadius: React.PropTypes.number,
+        labelRadius: React.PropTypes.number,
+        padRadius: React.PropTypes.string,
+        cornerRadius: React.PropTypes.number,
+        sort: React.PropTypes.any
+    },
+    getDefaultProps() {
+        return {
+            innerRadius: null,
+            outerRadius: null,
+            labelRadius: null,
+            padRadius: 'auto',
+            totalScale: 3.5,
+            cornerRadius: 0,
+            sort: undefined
+        };
+    },
+    render() {
 
+        const data = this.props.data;
+
+        // @todo: make this configurable
+        let offsetY = 20;
+        const theSize = 12;
+        const margin = 3;
+
+        // center legend vertically
+        let legendHeight = data.length * (offsetY + margin);
+        const startX = this.props.innerWidth + 10;
+        let startY = (this.props.height / 2) - (legendHeight / 2) - (this.props.margin.top);
+
+        return (
+            <g transform={`translate(${startX}, ${startY})`}>
+                {data.map((item, index) => {
+                    return <g key={`legend:${item.label}`} >
+                        <rect x={margin}  y={(offsetY * index) + margin} width={theSize + margin}
+                              height={theSize + margin}
+                              fill={this.props.colorScale(index)} />
+                        <text x={margin} y={(offsetY * (index)) + theSize + margin} dx="1.5em"
+                              textAnchor="start"
+                              style={{
+                                    fontFamily: "Roboto",
+                                    fontSize: theSize,
+                                    stroke: "#000",
+                                    fill: "#000"
+                              }}>{item.label}</text>
+                    </g>
+                })}
+            </g>
+        );
+    }
+});
 let BarChart = React.createClass({
 	mixins: [DefaultPropsMixin,
 			 HeightWidthMixin,
@@ -158,42 +218,46 @@ let BarChart = React.createClass({
 		return (
 				<div>
 				<Chart height={height} width={width} margin={margin}>
-				<DataSet
-			data={data}
-			xScale={xScale}
-			yScale={yScale}
-			colorScale={colorScale}
-			values={values}
-			label={label}
-			y={y}
-			y0={y0}
-			x={x}
-			onMouseEnter={this.onMouseEnter}
-			onMouseLeave={this.onMouseLeave}
-			groupedBars={groupedBars}
-			colorByLabel={colorByLabel}
-				/>
+                    <DataSet
+                        data={data}
+                        xScale={xScale}
+                        yScale={yScale}
+                        colorScale={colorScale}
+                        values={values}
+                        label={label}
+                        y={y}
+                        y0={y0}
+                        x={x}
+                        onMouseEnter={this.onMouseEnter}
+                        onMouseLeave={this.onMouseLeave}
+                        groupedBars={groupedBars}
+                        colorByLabel={colorByLabel}
+                    />
 
-				<Axis
-			className={"x axis"}
-			orientation={"bottom"}
-			scale={xScale}
-			height={innerHeight}
-			width={innerWidth}
-			tickFormat={tickFormat}
-			{...xAxis}
-				/>
+                    <Axis
+                        className={"x axis"}
+                        orientation={"bottom"}
+                        scale={xScale}
+                        height={innerHeight}
+                        width={innerWidth}
+                        tickFormat={tickFormat}
+                        {...xAxis}
+                    />
 
-				<Axis
-			className={"y axis"}
-			orientation={"left"}
-			scale={yScale}
-			height={innerHeight}
-			width={innerWidth}
-			tickFormat={tickFormat}
-			{...yAxis}
-				/>
-				{ this.props.children }
+                    <Axis
+                        className={"y axis"}
+                        orientation={"left"}
+                        scale={yScale}
+                        height={innerHeight}
+                        width={innerWidth}
+                        tickFormat={tickFormat}
+                        {...yAxis}
+                    />
+                    { this.props.children }
+
+                    {this.props.legend ?
+                        <Legend width={width} height={height} colorScale={colorScale} data={data} innerWidth={innerWidth} margin={margin} />: ''
+                    }
 				</Chart>
 
 				<Tooltip {...this.state.tooltip}/>

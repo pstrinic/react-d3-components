@@ -39,5 +39,18 @@
 		"prepublish": "babel -c -d ./lib ./src/",
 		"postpublish": "rm -r ./lib",
 		"build:js": "webpack && webpack --config webpack.config.min.js"
-	}
+	},
+    "mui": {
+        "entries": [
+            "index"
+        ],
+        "externals": {
+            "d3": {
+                "root": "d3",
+                "amd": "vendor/d3/d3.v3.min",
+                "commonjs": "vendor/d3/d3.v3.min",
+                "commonjs2": "vendor/d3/d3.v3.min"
+            }
+        }
+    }
 }

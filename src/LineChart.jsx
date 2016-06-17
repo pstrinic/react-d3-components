@@ -37,19 +37,20 @@ let DataSet = React.createClass({
 		let sizeId = width + 'x' + height;
 
 		let lines = data.map((stack, index) => {
+
 			return (
 					<Path
-				key={`${label(stack)}.${index}`}
-				className={'line'}
-				d={line(values(stack))}
-				stroke={colorScale(label(stack))}
-				strokeWidth={typeof strokeWidth === 'function' ? strokeWidth(label(stack)) : strokeWidth}
-				strokeLinecap={typeof strokeLinecap === 'function' ? strokeLinecap(label(stack)) : strokeLinecap}
-				strokeDasharray={typeof strokeDasharray === 'function' ? strokeDasharray(label(stack)) : strokeDasharray}
-				data={values(stack)}
-				onMouseEnter={onMouseEnter}
-				onMouseLeave={onMouseLeave}
-				style={{clipPath: `url(#lineClip_${sizeId})`}}
+                        key={`${label(stack)}.${index}`}
+                        className={'line'}
+                        d={line(values(stack))}
+                        stroke={colorScale(index)}
+                        strokeWidth={typeof strokeWidth === 'function' ? strokeWidth(label(stack)) : strokeWidth}
+                        strokeLinecap={typeof strokeLinecap === 'function' ? strokeLinecap(label(stack)) : strokeLinecap}
+                        strokeDasharray={typeof strokeDasharray === 'function' ? strokeDasharray(label(stack)) : strokeDasharray}
+                        data={values(stack)}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                        style={{clipPath: `url(#lineClip_${sizeId})`}}
 					/>
 			);
 		});
@@ -74,7 +75,66 @@ let DataSet = React.createClass({
 		);
 	}
 });
+let Legend = React.createClass({
+    mixins: [DefaultPropsMixin,
+        HeightWidthMixin,
+        AccessorMixin,
+        TooltipMixin
+    ],
+    propTypes: {
+        innerRadius: React.PropTypes.number,
+        outerRadius: React.PropTypes.number,
+        labelRadius: React.PropTypes.number,
+        padRadius: React.PropTypes.string,
+        cornerRadius: React.PropTypes.number,
+        sort: React.PropTypes.any
+    },
+    getDefaultProps() {
+        return {
+            innerRadius: null,
+            outerRadius: null,
+            labelRadius: null,
+            padRadius: 'auto',
+            totalScale: 3.5,
+            cornerRadius: 0,
+            sort: undefined
+        };
+    },
+    render() {
 
+        const data = this.props.data;
+
+        // @todo: make this configurable
+        let offsetY = 20;
+        const theSize = 12;
+        const margin = 3;
+
+        // center legend vertically
+        let legendHeight = data.length * (offsetY + margin);
+        const startX = this.props.innerWidth + 10;
+        let startY = (this.props.height / 2) - (legendHeight / 2) - (this.props.margin.top);
+
+        return (
+            <g transform={`translate(${startX}, ${startY})`}>
+                {data.map((item, index) => {
+                    return <g key={`legend:${item.label}`} >
+                        <rect x={margin}  y={(offsetY * index) + margin} width={theSize + margin}
+                              height={theSize + margin}
+                              fill={this.props.colorScale(index)} />
+                        <text x={margin} y={(offsetY * (index)) + theSize + margin} dx="1.5em"
+                              textAnchor="start"
+                              style={{
+                                    fontFamily: "Roboto",
+                                    fontSize: theSize,
+                                    stroke: "#000",
+                                    fill: "#000"
+                                }}>{item.label}</text>
+                    </g>
+                })}
+            </g>
+        );
+    }
+});
 let LineChart = React.createClass({
 	mixins: [DefaultPropsMixin,
 			 HeightWidthMixin,
@@ -239,12 +299,12 @@ let LineChart = React.createClass({
 			let translate = this._tooltipData ? `translate(${xScale(x(this._tooltipData.value))}, ${yScale(y(this._tooltipData.value))})` : "";
 			tooltipSymbol = this.state.tooltip.hidden ? null :
 				<path
-			className="dot"
-			d={symbol()}
-			transform={translate}
-			fill={symbolColor}
-			onMouseEnter={evt => { this.onMouseEnter(evt, data); }}
-			onMouseLeave={evt => { this.onMouseLeave(evt); }}
+                    className="dot"
+                    d={symbol()}
+                    transform={translate}
+                    fill={symbolColor}
+                    onMouseEnter={evt => { this.onMouseEnter(evt, data); }}
+                    onMouseLeave={evt => { this.onMouseLeave(evt); }}
 				/>;
 		}
 
@@ -253,40 +313,43 @@ let LineChart = React.createClass({
 				<Chart height={height} width={width} margin={margin}>
 
 				<DataSet
-			height={innerHeight}
-			width={innerWidth}
-			data={data}
-			line={line}
-			colorScale={colorScale}
-			values={values}
-			label={label}
-			onMouseEnter={this.onMouseEnter}
-			onMouseLeave={this.onMouseLeave}
-			{...stroke}
-				/>
+                    height={innerHeight}
+                    width={innerWidth}
+                    data={data}
+                    line={line}
+                    colorScale={colorScale}
+                    values={values}
+                    label={label}
+                    onMouseEnter={this.onMouseEnter}
+                    onMouseLeave={this.onMouseLeave}
+                    {...stroke}
+                />
 
-				<Axis
-			className={'x axis'}
-			orientation={'bottom'}
-			scale={xScale}
-			height={innerHeight}
-			width={innerWidth}
-			zero={yIntercept}
-			{...xAxis}
-				/>
+                        <Axis
+                            className={'x axis'}
+                            orientation={'bottom'}
+                            scale={xScale}
+                            height={innerHeight}
+                            width={innerWidth}
+                            zero={yIntercept}
+                            {...xAxis}
+                        />
 
-				<Axis
-			className={'y axis'}
-			orientation={'left'}
-			scale={yScale}
-			height={innerHeight}
-			width={innerWidth}
-			zero={xIntercept}
-			{...yAxis}
-				/>
-				{ this.props.children }
-				{tooltipSymbol}
+                        <Axis
+                            className={'y axis'}
+                            orientation={'left'}
+                            scale={yScale}
+                            height={innerHeight}
+                            width={innerWidth}
+                            zero={xIntercept}
+                            {...yAxis}
+                        />
+                        { this.props.children }
 
+				    {tooltipSymbol}
+                    {this.props.legend ?
+                        <Legend width={width} height={height} colorScale={colorScale} data={data} innerWidth={innerWidth} margin={margin} />: ''
+                    }
 				</Chart>
 
 				<Tooltip {...this.state.tooltip}/>
