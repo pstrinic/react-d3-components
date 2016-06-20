@@ -62,7 +62,8 @@ let DataSet = React.createClass({
             x,
             y,
             onMouseEnter,
-            onMouseLeave
+            onMouseLeave,
+            showPercentage
         } = this.props;
 
 		let wedges = pie.map((e, index) => {
@@ -81,6 +82,10 @@ let DataSet = React.createClass({
             // @todo: Replace with bounding box + collision logic
             let theValue = y(e.data);
             let theText = ("" + theValue).length > theValue/total*100 ? '' : theValue;
+            if(showPercentage) {
+                const pct = Math.round(theValue / total * 100);
+                theText = pct > 10 ?  `${pct}%` : "";
+            }
 
 			return (
                 <g key={`${x(e.data)}.${y(e.data)}.${index}`} className="arc">
@@ -133,6 +138,10 @@ let Legend = React.createClass({
         };
     },
     render() {
+        let {
+            x,
+            y
+        } = this.props;
 
         const data = this.props.data;
 
@@ -149,7 +158,7 @@ let Legend = React.createClass({
         return (
             <g transform={`translate(${startX}, ${startY})`}>
                 {data.values.map((item, index) => {
-                    return <g key={`legend:${item.x}`} >
+                    return <g key={`legend:${x(item)}`} >
                             <rect x={margin}  y={(offsetY * index) + margin} width={theSize + margin}
                                 height={theSize + margin}
                                 fill={this.props.colorScale(item.x)} />
@@ -160,7 +169,7 @@ let Legend = React.createClass({
                                     fontSize: theSize,
                                     stroke: "#000",
                                     fill: "#000"
-                                }}>{item.x}</text>
+                                }}>{x(item)}</text>
                         </g>
                 })}
             </g>
@@ -278,6 +287,7 @@ let PieChart = React.createClass({
                             y={y}
                             onMouseEnter={this.onMouseEnter}
                             onMouseLeave={this.onMouseLeave}
+                            showPercentage={this.props.showPercentage}
                         />
                         {showTotal ?
                             <text

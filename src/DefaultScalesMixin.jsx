@@ -109,8 +109,26 @@ let DefaultScalesMixin = {
         }
     },
 
+    __findLastStop(max, extendToSteps) {
+        const step = max / extendToSteps;
+        const log = Math.floor(Math.log10(max));
+        let t = Math.pow(10, log);
+        while(t < step) {
+            t *= 2;
+        }
+
+        let ticks = [0];
+        let tick = 1;
+        while(ticks.length <= extendToSteps) {
+            ticks.push(t * tick++);
+        }
+
+        this._ticks = ticks;
+        return t * extendToSteps;
+    },
+
     _makeLinearYScale(props) {
-        let {y, y0, values, groupedBars} = props;
+        let {y, y0, values, groupedBars, yAxis, yAxis: {extendToSteps}} = props;
         let [data, innerHeight] = [this._data, this._innerHeight];
 
         let extents =
@@ -126,6 +144,9 @@ let DefaultScalesMixin = {
                         });
                     })));
 
+        if(yAxis && extendToSteps) {
+            extents[1] = this.__findLastStop(extents[1], extendToSteps);
+        }
         extents = [d3.min([0, extents[0]]), extents[1]];
 
         let scale = d3.scale.linear()

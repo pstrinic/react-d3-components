@@ -127,7 +127,7 @@ let DefaultScalesMixin = {
     },
 
     _makeLinearYScale(props) {
-        let {y, y0, values, groupedBars, yAxis: {extendToSteps}} = props;
+        let {y, y0, values, groupedBars, yAxis, yAxis: {extendToSteps}} = props;
         let [data, innerWidth] = [this._data, this._innerWidth];
 
         let extents =
@@ -143,10 +143,9 @@ let DefaultScalesMixin = {
                              });
                          })));
 
-        if(extendToSteps) {
+        if(yAxis && extendToSteps) {
             extents[1] = this.__findLastStop(extents[1], extendToSteps);
         }
-
         extents = [d3.min([0, extents[0]]), extents[1]];
 
         let scale = d3.scale.linear()
