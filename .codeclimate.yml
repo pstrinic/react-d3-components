@@ -19,3 +19,4 @@ exclude_paths:
 - dist/
 - example/
 - webpack.config.js
+- webpack.config.min.js
