@@ -17,4 +17,5 @@ ratings:
   - "**.jsx"
 exclude_paths:
 - dist/
-- examples/
+- example/
+- webpack.config.js
