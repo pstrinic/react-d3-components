@@ -5,7 +5,7 @@ engines:
     enabled: false
   eslint:
     enabled: true
-    config:
+    channel: "eslint-2"
     extensions:
     - .js
     - .jsx
